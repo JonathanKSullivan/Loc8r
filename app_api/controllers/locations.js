@@ -9,7 +9,7 @@ const locationsCreate = (req, res) => {
     address: req.body.address,
     facilities:
       req.body.facilities.split(','),
-    coord: {
+    coords: {
       type: 'Point',
       coordinates: [
         parseFloat(req.body.lng),
@@ -36,7 +36,7 @@ const locationsCreate = (req, res) => {
 }
 
 const locationsReadOne = (req, res) => {
-  Loc.findByID(req.params.locationid)
+  Loc.findById(req.params.locationid)
     .select('name reviews')
     .exec((err, location) => {
       if (!location) {
@@ -49,6 +49,10 @@ const locationsReadOne = (req, res) => {
         return res
           .status(404)
           .json(err)
+      } else {
+        return res
+          .status(201)
+          .json(location)
       }
     })
 }
@@ -65,9 +69,9 @@ const locationsListByDistance = async (req, res) => {
     key: 'coords',
     spherical: true,
     maxDistance: 20000,
-    limit: 10
+    
   }
-  if (req.query.maxDistance !== undefined) {
+  if (req.query.maxDistance == undefined) {
     geoOptions.maxDistance = req.query.maxDistance
   }
   if (!lng || !lat) {
@@ -78,6 +82,7 @@ const locationsListByDistance = async (req, res) => {
       })
   }
   try {
+
     const results = await Loc.aggregate([
       {
         $geoNear: {
@@ -87,11 +92,12 @@ const locationsListByDistance = async (req, res) => {
       }
     ])
     const locations = locUtil.buildListOfLocations(results)
-    res
+
+    return res
       .status(200)
       .json(locations)
   } catch (err) {
-    res
+    return res
       .status(404)
       .json(err)
   }

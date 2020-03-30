@@ -1,3 +1,4 @@
+const request = require('request')
 /* GET homepage */
 const about = (req, res) => {
   res.render('generic-text', {

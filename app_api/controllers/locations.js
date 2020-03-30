@@ -1,81 +1,81 @@
-const mongoose = require('mongoose');
-const Loc = mongoose.model('Location');
+const mongoose = require('mongoose')
+const Loc = mongoose.model('Location')
 
-const locUtil = require('./locations_util');
+const locUtil = require('./locations_util')
 
-
-const locationsCreate = (req, res) => { 
+const locationsCreate = (req, res) => {
   Loc.create({
     name: req.body.name,
     address: req.body.address,
     facilities:
-      req.body.facilities.split(","),
+      req.body.facilities.split(','),
     coord: {
-      type: "Point",
+      type: 'Point',
       coordinates: [
         parseFloat(req.body.lng),
         parseFloat(req.body.lat)
       ]
     },
-    openingTimes: setOpeningTimes(
-      req.body.days, 
-      req.body.openings, 
-      req.body.closings, 
-      req.body.closeds 
+    openingTimes: locUtil.setOpeningTimes(
+      req.body.days,
+      req.body.openings,
+      req.body.closings,
+      req.body.closeds
     )
   }, (err, location) => {
-    if(err) {
+    if (err) {
       res
         .status(404)
-        .json(err);
+        .json(err)
     } else {
       res
         .status(201)
-        .json(location);
+        .json(location)
     }
-  });
-};
+  })
+}
 
-const locationsReadOne = (req, res) => { 
+const locationsReadOne = (req, res) => {
   Loc.findByID(req.params.locationid)
-  .select('name reviews')
-  .exec((err, location) => {
-    if(!location){
-      return res
-      .status(404)
-      .json({
-        "message": "location not found"
-      });
-    } else if(err){
-      return res
-        .status(404)
-        .json(err)
-    }})
-};
+    .select('name reviews')
+    .exec((err, location) => {
+      if (!location) {
+        return res
+          .status(404)
+          .json({
+            message: 'location not found'
+          })
+      } else if (err) {
+        return res
+          .status(404)
+          .json(err)
+      }
+    })
+}
 
-const locationsListByDistance = async(req, res) => {
-  const lng = parseFloat(req.query.lng);
-  const lat = parseFloat(req.query.lat);
+const locationsListByDistance = async (req, res) => {
+  const lng = parseFloat(req.query.lng)
+  const lat = parseFloat(req.query.lat)
   const near = {
-    type: "Point",
+    type: 'Point',
     coordinates: [lng, lat]
-  };
+  }
   const geoOptions = {
-    distanceField: "distance.calculated",
+    distanceField: 'distance.calculated',
     key: 'coords',
     spherical: true,
     maxDistance: 20000,
     limit: 10
-  };
-  if (req.query.maxDistance !== undefined){
-    geoOptions.maxDistance = req.query.maxDistance;
+  }
+  if (req.query.maxDistance !== undefined) {
+    geoOptions.maxDistance = req.query.maxDistance
   }
   if (!lng || !lat) {
     return res
       .status(404)
       .json({
-      "message": "lng and lat query parameters are required"
-    });
+        message: 'lng and lat query parameters are required'
+      })
   }
   try {
     const results = await Loc.aggregate([
@@ -85,27 +85,27 @@ const locationsListByDistance = async(req, res) => {
           ...geoOptions
         }
       }
-    ]);
-    const locations = buildListOfLocations(results);
+    ])
+    const locations = locUtil.buildListOfLocations(results)
     res
       .status(200)
-      .json(locations);
+      .json(locations)
   } catch (err) {
     res
       .status(404)
-      .json(err);
+      .json(err)
   }
-};
-const locationsUpdateOne = (req, res) => { 
+}
+const locationsUpdateOne = (req, res) => {
   res
     .status(200)
-    .json({"status" : "success"});
-};
-const locationsDeleteOne = (req, res) => { 
+    .json({ status: 'success' })
+}
+const locationsDeleteOne = (req, res) => {
   res
     .status(200)
-    .json({"status" : "success"});
-};
+    .json({ status: 'success' })
+}
 
 module.exports = {
   locationsListByDistance,
@@ -113,4 +113,4 @@ module.exports = {
   locationsReadOne,
   locationsUpdateOne,
   locationsDeleteOne
-};
+}

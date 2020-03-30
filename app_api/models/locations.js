@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 const timeformat = {
-	type: Number,
-	min: 0,
-	max: 1440
+  type: Number,
+  min: 0,
+  max: 1440
 }
 
 const openingTimeSchema = new mongoose.Schema({
@@ -16,7 +16,7 @@ const openingTimeSchema = new mongoose.Schema({
     type: Boolean,
     required: true
   }
-});
+})
 
 const reviewSchema = new mongoose.Schema({
   author: String,
@@ -29,21 +29,21 @@ const reviewSchema = new mongoose.Schema({
   reviewText: String,
   createdOn: {
     type: Date,
-    'default': Date.now
+    default: Date.now
   }
-});
+})
 
 const locationSchema = new mongoose.Schema({
   name: {
-  	type: String,
-  	required: true
+    type: String,
+    required: true
   },
   address: String,
   rating: {
-  	type: Number,
-  	'default': 0,
-  	min: 0,
-  	max: 5
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5
   },
   facilities: [String],
   coords: {
@@ -52,7 +52,7 @@ const locationSchema = new mongoose.Schema({
   },
   openingTimes: [openingTimeSchema],
   reviews: [reviewSchema]
-});
-locationSchema.index({coords: '2dsphere'});
+})
+locationSchema.index({ coords: '2dsphere' })
 
-mongoose.model('Location', locationSchema);
+mongoose.model('Location', locationSchema)

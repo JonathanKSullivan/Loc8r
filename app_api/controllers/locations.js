@@ -17,10 +17,10 @@ const locationsCreate = (req, res) => {
       ]
     },
     openingTimes: locUtil.setOpeningTimes(
-      req.body.days,
-      req.body.openings,
-      req.body.closings,
-      req.body.closeds
+      req.body.days.split(','),
+      req.body.openings.split(','),
+      req.body.closings.split(','),
+      req.body.closeds.split(',')
     )
   }, (err, location) => {
     if (err) {
@@ -97,14 +97,81 @@ const locationsListByDistance = async (req, res) => {
   }
 }
 const locationsUpdateOne = (req, res) => {
-  res
-    .status(200)
-    .json({ status: 'success' })
+  if(!req.params.locationid){
+    return res
+      .status(404)
+      .json({
+        "message": "Not found, locationid is required"
+      });
+  }
+  Loc
+    .findByID(req.params.locationid)
+    .select('-reviews -ratings')
+    .exec((err, location) => {
+      if(!location){
+        return res
+          .status(404)
+          .json({
+            "message": "locationid not found"
+          });
+      } else if(err) {
+        return res
+          .status(400)
+          .json(err);
+      }
+      location.name = req.body.name;
+      location.address = req.body.address;
+      location.facilities = req.body.facilities.split(',');
+      location.coord = {
+        type: "Point",
+        coordinates: [
+          parseFloat(req.body.lng),
+          parseFloat(req.body.lat)
+        ]
+      };
+      location.openingTimes = locUtil.setOpeningTimes(
+        req.body.days.split(','),
+        req.body.openings.split(','),
+        req.body.closings.split(','),
+        req.body.closeds.split(',')
+      )
+      location.save((err, loc) => {
+        if (err) {
+          res
+            .status(400)
+            .json(err);
+        } else {
+          res
+            .status(200)
+            .json(loc);
+        }
+      });
+  });
 }
+
 const locationsDeleteOne = (req, res) => {
-  res
-    .status(200)
-    .json({ status: 'success' })
+  const locationid = req.params.locationid;
+  if (locationid){
+    Loc
+      .findByIDAndRemove(locationid)
+      .exec((err, location) => {
+        if (err) {
+          return res
+            .status(404)
+            .json(err);
+        } else {
+          return res
+            .status(204)
+            .json(null);
+        }
+      });
+  } else {
+    res
+      .status(404)
+      .json({
+        "message": "No Location"
+      })
+  }
 }
 
 module.exports = {
